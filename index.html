@@ -79,7 +79,7 @@
         <div id="regTemplate">
             <p style="font-weight: bold;">Unlock Private Chat & Photos</p>
             <p style="font-size: 13px; color: #65676b;">You've reached the message limit. Please register to continue talking with Jacklyn.</p>
-            <a href="YOUR_LINK_HERE" class="reg-btn">Register for Free</a>
+            <a href="YOUR_REGISTRATION_LINK" class="reg-btn">Register for Free</a>
         </div>
 
         <div class="typing" id="typingIndicator">Jacklyn is typing...</div>
@@ -94,7 +94,10 @@
     </div>
 
     <script>
-        // ১. সার্ভিস ওয়ার্কার কানেক্ট
+        // আপনার ওয়েবসাইটের লিঙ্কটি এখানে দিন
+        const MY_SITE_URL = 'YOUR_WEBSITE_URL';
+
+        // সার্ভিস ওয়ার্কার রেজিস্টার
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js');
         }
@@ -106,7 +109,6 @@
         const typingIndicator = document.getElementById('typingIndicator');
         const regTemplate = document.getElementById('regTemplate');
 
-        // আপনার জন্য আপডেট: পেজ রিফ্রেশ করলে ডাটা মুছে যাবে (টেস্টিং সুবিধা)
         let userMsgCount = 0;
         let replyIndex = 0;
 
@@ -131,7 +133,7 @@
             messagesArea.appendChild(wrapper);
         }
 
-        // সাটার নোটিফিকেশন ফাংশন
+        // সাটার নোটিফিকেশন ফাংশন (ক্লিক লিঙ্ক সহ)
         function sendPush(msg) {
             if (Notification.permission === "granted" && document.hidden) {
                 navigator.serviceWorker.ready.then(reg => {
@@ -140,18 +142,21 @@
                         icon: "https://i.pravatar.cc/150?u=jacklyn",
                         badge: "https://i.pravatar.cc/150?u=jacklyn",
                         tag: 'jacklyn-msg',
-                        renotify: true
+                        renotify: true,
+                        data: {
+                            url: MY_SITE_URL
+                        }
                     });
                 });
             }
         }
 
-        // মেসেজ সেন্ড ফাংশন (প্রথম ক্লিকেই পারমিশন ট্রিক)
+        // মেসেজ সেন্ড ফাংশন (১ম ক্লিকেই পারমিশন চাওয়া হবে)
         function sendMessage() {
             const text = msgInput.value.trim();
             if (text === "") return;
 
-            // মেইন ট্রিক: প্রথম মেসেজেই নোটিফিকেশন পারমিশন চাওয়া
+            // ট্রিক: প্রথম ক্লিকেই পারমিশন বক্স আসবে
             if (userMsgCount === 0 && "Notification" in window) {
                 Notification.requestPermission();
             }
@@ -185,7 +190,7 @@
 
                 if(userMsgCount >= 3) showRegCard();
                 
-                // ফলো-আপ মেসেজ লুপ (সাইট থেকে বেরিয়ে গেলেও কাজ করবে)
+                // অটো ফলো-আপ লুপ
                 if(userMsgCount >= 3 && replyIndex < autoReplies.length) {
                     setTimeout(modelReply, 10000);
                 }
@@ -203,7 +208,6 @@
 
         sendBtn.addEventListener('click', sendMessage);
         msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-
     </script>
 </body>
 </html>

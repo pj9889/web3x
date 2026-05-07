@@ -9,85 +9,77 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body, html { height: 100%; overflow: hidden; background-color: #fff; width: 100%; position: fixed; }
 
-        /* ভেরিফাইড ব্যাজ স্টাইল */
-        .verified-badge { color: #0084ff; font-size: 13px; margin-left: 3px; display: inline-flex; align-items: center; }
+        .verified-badge { color: #0084ff; font-size: 13px; margin-left: 3px; }
 
         .header { position: fixed; top: 0; width: 100%; height: 60px; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #ddd; z-index: 1000; }
         .profile-section { display: flex; align-items: center; }
-        .user-name { font-weight: bold; font-size: 16px; display: flex; align-items: center; }
-        .profile-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .video-call-btn { color: #0084ff; font-size: 22px; cursor: pointer; }
+        .header-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .user-name { font-weight: bold; font-size: 16px; display: flex; align-items: center; margin-left: 10px; }
 
-        .chat-container { position: absolute; top: 60px; bottom: 70px; width: 100%; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; background: #fff; }
-        
-        /* কল লগ স্টাইল (স্ক্রিনশট অনুযায়ী) */
-        .call-log-wrapper { align-self: flex-start; margin-bottom: 15px; width: 100%; }
-        .call-log-box { background: #333; color: white; padding: 15px; border-radius: 20px; width: 260px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-container { position: absolute; top: 60px; bottom: 70px; width: 100%; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; background: #fff; }
+
+        /* মেসেজ উইথ প্রোফাইল পিক */
+        .message-wrapper { display: flex; align-items: flex-end; margin-bottom: 15px; gap: 8px; }
+        .msg-profile-pic { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+        .message { max-width: 70%; padding: 10px 15px; border-radius: 18px; font-size: 15px; line-height: 1.4; }
+        .received { background: #e4e6eb; color: #000; }
+        .sent { background: #0084ff; color: #fff; align-self: flex-end; margin-left: auto; }
+        .sent-wrapper { justify-content: flex-end; }
+
+        /* কল লগ স্টাইল */
+        .call-log-box { background: #333; color: white; padding: 15px; border-radius: 20px; width: 260px; margin-bottom: 15px; }
         .call-log-info { display: flex; align-items: center; gap: 12px; }
-        .call-log-icon { width: 35px; height: 35px; background: #555; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        .call-log-text div:first-child { font-weight: bold; font-size: 16px; }
-        .call-log-text div:last-child { font-size: 13px; color: #bbb; }
-        .call-again-btn { background: #444; text-align: center; padding: 8px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .call-log-icon-bg { width: 35px; height: 35px; background: #555; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .call-again-btn { background: #444; text-align: center; padding: 8px; border-radius: 10px; margin-top: 10px; font-weight: 600; }
 
         /* কল স্ক্রিন */
         #videoOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 3000; color: white; text-align: center; }
-        .caller-info { margin-top: 80px; }
-        .caller-info img { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #fff; }
-        .caller-info h2 { margin-top: 15px; display: flex; align-items: center; justify-content: center; }
+        .call-header { margin-top: 80px; }
+        .call-header img { width: 110px; height: 110px; border-radius: 50%; border: 2px solid #fff; }
+        #callTimer { font-size: 18px; margin-top: 10px; color: #ccc; }
         
-        video#mainVideo { width: 100%; height: 100%; object-fit: cover; }
-        video#userPreview { position: absolute; top: 20px; right: 20px; width: 100px; height: 150px; border-radius: 10px; object-fit: cover; background: #222; border: 1px solid #444; }
+        video#mainVideo { width: 100%; height: 100%; object-fit: cover; display: none; }
+        video#userPreview { position: absolute; top: 20px; right: 20px; width: 100px; height: 150px; border-radius: 10px; display: none; object-fit: cover; border: 1px solid #444; }
 
-        .call-controls { position: absolute; bottom: 50px; width: 100%; display: flex; justify-content: center; gap: 40px; }
-        .control-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
-        .accept { background: #31a24c; }
-        .decline { background: #fa3e3e; }
+        .call-controls { position: absolute; bottom: 60px; width: 100%; display: flex; justify-content: center; gap: 40px; }
+        .btn-call { width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
+        .btn-hangup { background: #fa3e3e; }
+        .btn-answer { background: #31a24c; }
 
-        /* ইনপুট এরিয়া */
         .footer { position: fixed; bottom: 0; width: 100%; background: #fff; padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; z-index: 1000; }
         .input-box { flex: 1; background: #f0f2f5; border-radius: 20px; padding: 8px 15px; display: flex; }
         .input-box input { border: none; background: transparent; width: 100%; outline: none; }
-        .send-btn { color: #0084ff; font-size: 20px; cursor: pointer; }
-        
-        .message-wrapper { display: flex; flex-direction: column; margin-bottom: 12px; }
-        .message { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 15px; }
-        .received { background: #e4e6eb; align-self: flex-start; }
-        .sent { background: #0084ff; color: #fff; align-self: flex-end; }
-        .typing { font-size: 12px; color: #65676b; display: none; margin-bottom: 10px; }
+        .typing { font-size: 12px; color: #65676b; display: none; margin: 5px 0 10px 40px; }
     </style>
 </head>
 <body>
 
     <div id="videoOverlay">
-        <div class="caller-info" id="incomingUI">
-            <img src="https://i.pravatar.cc/150?u=jacklyn" alt="">
-            <h2>Jacklyn Rose <i class="fa-solid fa-circle-check verified-badge"></i></h2>
-            <p style="margin-top:10px;">Incoming video call...</p>
-            <div class="call-controls">
-                <div class="control-btn decline" onclick="endCall()"><i class="fa-solid fa-xmark"></i></div>
-                <div class="control-btn accept" onclick="acceptCall()"><i class="fa-solid fa-video"></i></div>
-            </div>
+        <div class="call-header" id="callInfoUI">
+            <img src="https://i.pravatar.cc/150?u=jacklyn">
+            <h2 style="display:flex; align-items:center; justify-content:center; margin-top:15px;">
+                Jacklyn Rose <i class="fa-solid fa-circle-check verified-badge"></i>
+            </h2>
+            <div id="callStatusText" style="margin-top:10px;">Incoming video call...</div>
+            <div id="callTimer">00:00</div>
         </div>
         
-        <div id="activeCallUI" style="display:none; height:100%;">
-            <video id="mainVideo" playsinline></video>
-            <video id="userPreview" autoplay muted playsinline></video>
-            <div class="call-controls">
-                <div class="control-btn decline" onclick="endCall()"><i class="fa-solid fa-phone-slash"></i></div>
-            </div>
+        <video id="mainVideo" playsinline></video>
+        <video id="userPreview" autoplay muted playsinline></video>
+
+        <div class="call-controls">
+            <div class="btn-call btn-hangup" onclick="endCall()"><i class="fa-solid fa-phone-slash"></i></div>
+            <div class="btn-call btn-answer" id="answerBtn" onclick="acceptCall()"><i class="fa-solid fa-video"></i></div>
         </div>
     </div>
 
     <div class="header">
         <div class="profile-section">
-            <i class="fa-solid fa-arrow-left" style="margin-right:15px; color:#0084ff;"></i>
-            <img src="https://i.pravatar.cc/150?u=jacklyn" class="profile-pic">
-            <div style="margin-left:10px;">
-                <div class="user-name">Jacklyn Rose <i class="fa-solid fa-circle-check verified-badge"></i></div>
-                <div style="font-size:12px; color:#65676b;">Active now</div>
-            </div>
+            <i class="fa-solid fa-arrow-left" style="color:#0084ff; margin-right:10px;"></i>
+            <img src="https://i.pravatar.cc/150?u=jacklyn" class="header-pic">
+            <div class="user-name">Jacklyn Rose <i class="fa-solid fa-circle-check verified-badge"></i></div>
         </div>
-        <div class="video-call-btn" onclick="triggerOutgoingCall()"><i class="fa-solid fa-video"></i></div>
+        <div style="color:#0084ff; font-size:22px;" onclick="startOutgoingCall()"><i class="fa-solid fa-video"></i></div>
     </div>
 
     <div class="chat-container" id="chatContainer">
@@ -96,12 +88,12 @@
     </div>
 
     <div class="footer">
-        <i class="fa-solid fa-circle-plus" id="plusIcon" style="color:#0084ff;"></i>
+        <i class="fa-solid fa-circle-plus" style="color:#0084ff;"></i>
         <div class="input-box">
             <input type="text" id="msgInput" placeholder="Aa" autocomplete="off">
-            <i class="fa-regular fa-face-smile" id="emojiIcon" style="color:#0084ff;"></i>
+            <i class="fa-regular fa-face-smile" style="color:#0084ff;"></i>
         </div>
-        <i class="fa-solid fa-paper-plane send-btn" id="sendBtn"></i>
+        <i class="fa-solid fa-paper-plane" id="sendBtn" style="color:#0084ff; cursor:pointer;"></i>
     </div>
 
     <script>
@@ -109,115 +101,62 @@
         const chatContainer = document.getElementById('chatContainer');
         const msgInput = document.getElementById('msgInput');
         const videoOverlay = document.getElementById('videoOverlay');
-        const mainVideo = document.getElementById('mainVideo');
-        const userPreview = document.getElementById('userPreview');
+        const callTimerTxt = document.getElementById('callTimer');
         const typingIndicator = document.getElementById('typingIndicator');
 
         let replyIndex = 0;
         let inactivityTimer;
-        let nagIndex = 0;
-        const autoReplies = ["Hey handsome.. 😉", "Thinking about tonight. You in? 😈", "You look like you know how to treat a lady...", "Lonely here, want company? 💋"];
-        const naggingReplies = ["Are you ok?", "Reply me", "Why you stop?", "Chatting with me.."];
+        let callInterval;
+        let seconds = 0;
+        let isWaitingForReply = true;
 
-        // ১. অটো রিপ্লাই ও টাইপিং লজিক
+        const autoReplies = ["Hey handsome.. 😉", "Thinking about tonight.. 😈", "You look like a guy who knows how to treat a lady...", "Want to keep me company? 💋"];
+        const nagReplies = ["Are you ok?", "Reply me", "Why you stop?", "Keep chatting with me.."];
+
         function startInactivityTimer() {
             clearTimeout(inactivityTimer);
+            if (!isWaitingForReply) return;
+
             inactivityTimer = setTimeout(() => {
                 typingIndicator.style.display = 'block';
                 setTimeout(() => {
                     typingIndicator.style.display = 'none';
-                    receiveMessage(naggingReplies[nagIndex % naggingReplies.length]);
-                    nagIndex++;
-                    startInactivityTimer();
+                    receiveMessage(nagReplies[replyIndex % nagReplies.length]);
+                    isWaitingForReply = false; // একটার পর থেমে যাবে
                 }, 3000);
-            }, 10000);
-        }
-
-        // ২. ভিডিও কল লজিক
-        function triggerIncomingCall() {
-            videoOverlay.style.display = 'block';
-            document.getElementById('incomingUI').style.display = 'block';
-            document.getElementById('activeCallUI').style.display = 'none';
-        }
-
-        async function acceptCall() {
-            document.getElementById('incomingUI').style.display = 'none';
-            document.getElementById('activeCallUI').style.display = 'block';
-            
-            // ইউজারের ক্যামেরা অন করা
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                userPreview.srcObject = stream;
-            } catch (e) { console.log("Camera access denied"); }
-
-            mainVideo.src = "https://www.w3schools.com/html/mov_bbb.mp4"; // এখানে আপনার ভিডিও লিঙ্ক দিন
-            mainVideo.play();
-        }
-
-        function triggerOutgoingCall() {
-            // ভিজিটর কল দিলে সরাসরি ভিডিও স্ক্রিন
-            videoOverlay.style.display = 'block';
-            document.getElementById('incomingUI').style.display = 'none';
-            document.getElementById('activeCallUI').style.display = 'block';
-            acceptCall();
-        }
-
-        function endCall() {
-            videoOverlay.style.display = 'none';
-            mainVideo.pause();
-            if(userPreview.srcObject) {
-                userPreview.srcObject.getTracks().forEach(track => track.stop());
-            }
-            addCallLog();
-        }
-
-        // ৩. কল লগ মেসেজ (স্ক্রিনশট ডিজাইন)
-        function addCallLog() {
-            const logHTML = `
-                <div class="call-log-wrapper">
-                    <div class="call-log-box">
-                        <div class="call-log-info">
-                            <div class="call-log-icon"><i class="fa-solid fa-phone-arrow-up-right"></i></div>
-                            <div class="call-log-text">
-                                <div>Audio call</div>
-                                <div>4 mins 52 secs</div>
-                            </div>
-                        </div>
-                        <div class="call-again-btn">Call again</div>
-                    </div>
-                </div>
-            `;
-            const div = document.createElement('div');
-            div.innerHTML = logHTML;
-            messagesArea.appendChild(div);
-            scrollToBottom();
+            }, 15000);
         }
 
         function receiveMessage(text) {
-            const div = document.createElement('div');
-            div.className = 'message-wrapper';
-            div.innerHTML = `<div class="message received">${text}</div>`;
-            messagesArea.appendChild(div);
+            const html = `
+                <div class="message-wrapper">
+                    <img src="https://i.pravatar.cc/150?u=jacklyn" class="msg-profile-pic">
+                    <div class="message received">${text}</div>
+                </div>
+            `;
+            messagesArea.insertAdjacentHTML('beforeend', html);
             scrollToBottom();
 
-            // আপনার রিকোয়েস্ট অনুযায়ী নির্দিষ্ট রিপ্লাইয়ের পর কল ট্রিগার
-            if (text === autoReplies[0]) setTimeout(triggerIncomingCall, 1000);
-            if (text === autoReplies[2]) setTimeout(triggerIncomingCall, 1000);
+            if (text === autoReplies[0] || text === autoReplies[2]) {
+                setTimeout(triggerIncomingCall, 1500);
+            }
         }
 
         function sendMessage() {
             const text = msgInput.value.trim();
             if (!text) return;
-            
-            clearTimeout(inactivityTimer);
-            const div = document.createElement('div');
-            div.className = 'message-wrapper';
-            div.innerHTML = `<div class="message sent">${text}</div>`;
-            messagesArea.appendChild(div);
+
+            const html = `
+                <div class="message-wrapper sent-wrapper">
+                    <div class="message sent">${text}</div>
+                </div>
+            `;
+            messagesArea.insertAdjacentHTML('beforeend', html);
             msgInput.value = "";
             scrollToBottom();
+            isWaitingForReply = true;
+            clearTimeout(inactivityTimer);
 
-            // অটো রিপ্লাই লজিক
             setTimeout(() => {
                 typingIndicator.style.display = 'block';
                 setTimeout(() => {
@@ -231,11 +170,75 @@
             }, 2000);
         }
 
+        // --- কল সিস্টেম ---
+        function triggerIncomingCall() {
+            videoOverlay.style.display = 'block';
+            document.getElementById('callStatusText').innerText = "Incoming video call...";
+            document.getElementById('answerBtn').style.display = 'flex';
+        }
+
+        function startOutgoingCall() {
+            videoOverlay.style.display = 'block';
+            document.getElementById('callStatusText').innerText = "Calling...";
+            document.getElementById('answerBtn').style.display = 'none';
+            setTimeout(acceptCall, 3000); // ৩ সেকেন্ড পর অটো রিসিভ
+        }
+
+        async function acceptCall() {
+            document.getElementById('callStatusText').innerText = "Connected";
+            document.getElementById('answerBtn').style.display = 'none';
+            document.getElementById('mainVideo').style.display = 'block';
+            document.getElementById('userPreview').style.display = 'block';
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                document.getElementById('userPreview').srcObject = stream;
+            } catch(e) {}
+
+            document.getElementById('mainVideo').src = "https://www.w3schools.com/html/mov_bbb.mp4";
+            document.getElementById('mainVideo').play();
+
+            // টাইমার শুরু
+            seconds = 0;
+            callInterval = setInterval(() => {
+                seconds++;
+                let m = Math.floor(seconds/60).toString().padStart(2, '0');
+                let s = (seconds%60).toString().padStart(2, '0');
+                callTimerTxt.innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function endCall() {
+            clearInterval(callInterval);
+            const duration = callTimerTxt.innerText;
+            videoOverlay.style.display = 'none';
+            document.getElementById('mainVideo').pause();
+            if(document.getElementById('userPreview').srcObject) {
+                document.getElementById('userPreview').srcObject.getTracks().forEach(t => t.stop());
+            }
+            
+            const logHTML = `
+                <div class="call-log-box">
+                    <div class="call-log-info">
+                        <div class="call-log-icon-bg"><i class="fa-solid fa-phone-arrow-up-right"></i></div>
+                        <div>
+                            <div style="font-weight:bold;">Video call</div>
+                            <div style="font-size:13px; color:#bbb;">${duration}</div>
+                        </div>
+                    </div>
+                    <div class="call-again-btn">Call again</div>
+                </div>
+            `;
+            messagesArea.insertAdjacentHTML('beforeend', logHTML);
+            scrollToBottom();
+            callTimerTxt.innerText = "00:00";
+            startInactivityTimer();
+        }
+
         function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
         document.getElementById('sendBtn').addEventListener('click', sendMessage);
         msgInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
-        
-        // শুরুতে টাইমার শুরু
+
         startInactivityTimer();
     </script>
 </body>

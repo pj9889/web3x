@@ -6,7 +6,7 @@
     <title>Messenger - Jacklyn Rose</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* ডিজাইন আগের মতোই আছে, কোনো পরিবর্তন করা হয়নি */
+        /* ডিজাইন আগের মতোই রাখা হয়েছে */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body, html { height: 100%; overflow: hidden; background-color: #fff; width: 100%; position: fixed; }
 
@@ -29,14 +29,14 @@
         .middle-name { font-size: 22px; font-weight: 800; }
         .location { color: #65676b; font-size: 14px; margin-top: 5px; }
         .not-friends { font-size: 13px; color: #65676b; margin-top: 10px; padding: 0 20px; }
-        .add-friend-btn { margin-top: 15px; padding: 8px 20px; background: #e4e6eb; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .add-friend-btn { margin-top: 15px; padding: 8px 20px; background: #e4e6eb; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .add-friend-btn.sent { background: #0084ff; color: #fff; }
 
         .message-wrapper { display: flex; flex-direction: column; margin-bottom: 12px; position: relative; width: 100%; }
         .message { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 15px; line-height: 1.4; }
         .received { background: #e4e6eb; align-self: flex-start; color: #000; }
         .sent { background: #0084ff; align-self: flex-end; color: #fff; }
         
-        /* স্ট্যাটাস আইকন স্টাইল */
         .status-icon { align-self: flex-end; font-size: 12px; color: #65676b; margin-top: 2px; margin-right: 5px; height: 16px; min-width: 16px; display: flex; justify-content: flex-end; }
         .seen-img { width: 14px; height: 14px; border-radius: 50%; }
 
@@ -70,8 +70,8 @@
             <img src="https://i.pravatar.cc/150?u=jacklyn" class="middle-pic">
             <div class="middle-name">Jacklyn Rose <i class="fa-solid fa-circle-check verified-badge"></i></div>
             <div class="location">Miami, Florida</div>
-            <div class="not-friends">You are not friends with Jacklyn Rose on Messenger.</div>
-            <button class="add-friend-btn"><i class="fa-solid fa-user-plus"></i> Add Friend</button>
+            <div class="not-friends" id="friendStatusText">You are not friends with Jacklyn Rose on Messenger.</div>
+            <button class="add-friend-btn" id="addFriendBtn"><i class="fa-solid fa-user-plus"></i> Add Friend</button>
         </div>
         
         <div id="messagesArea"></div>
@@ -79,10 +79,10 @@
     </div>
 
     <div class="footer">
-        <i class="fa-solid fa-circle-plus emoji-btn"></i>
+        <i class="fa-solid fa-circle-plus emoji-btn" id="plusIcon"></i>
         <div class="input-box">
             <input type="text" placeholder="Aa" id="msgInput" autocomplete="off">
-            <i class="fa-regular fa-face-smile emoji-btn"></i>
+            <i class="fa-regular fa-face-smile emoji-btn" id="emojiIcon"></i>
         </div>
         <i class="fa-solid fa-paper-plane send-btn" id="sendBtn"></i>
     </div>
@@ -93,6 +93,10 @@
         const messagesArea = document.getElementById('messagesArea');
         const chatContainer = document.getElementById('chatContainer');
         const typingIndicator = document.getElementById('typingIndicator');
+        const addFriendBtn = document.getElementById('addFriendBtn');
+        const friendStatusText = document.getElementById('friendStatusText');
+        const plusIcon = document.getElementById('plusIcon');
+        const emojiIcon = document.getElementById('emojiIcon');
 
         let replyIndex = 0;
         const autoReplies = [
@@ -108,12 +112,23 @@
             "Why don't you come over and we can stop talking and start doing? 🔥"
         ];
 
-        // সিন আইকন রিমুভ করার ফাংশন (যাতে একটাই আইকন থাকে)
+        // ১. অ্যাড ফ্রেন্ড বাটন ফাংশন
+        addFriendBtn.addEventListener('click', function() {
+            this.innerHTML = '<i class="fa-solid fa-user-check"></i> Request Sent';
+            this.classList.add('sent');
+            friendStatusText.innerText = "Friend request sent to Jacklyn Rose.";
+        });
+
+        // ২. প্লাস ও ইমোজি আইকনে অ্যালার্ট
+        const showError = () => alert("Something Wrong");
+        plusIcon.addEventListener('click', showError);
+        emojiIcon.addEventListener('click', showError);
+
         function clearPreviousSeen() {
             const allIcons = document.querySelectorAll('.status-icon');
             allIcons.forEach(icon => {
                 if (icon.innerHTML.includes('seen-img')) {
-                    icon.innerHTML = ''; // আগের মেসেজের সিন আইকন মুছে যাবে
+                    icon.innerHTML = ''; 
                 }
             });
         }
@@ -122,7 +137,6 @@
             const text = msgInput.value.trim();
             if (text === "") return;
 
-            // ১. ইউজার মেসেজ (Sent স্টেট)
             const wrapper = document.createElement('div');
             wrapper.className = 'message-wrapper';
             wrapper.innerHTML = `
@@ -135,25 +149,21 @@
             msgInput.value = "";
             scrollToBottom();
 
-            // ২. Delivered (১ সেকেন্ড পর)
             setTimeout(() => {
                 currentStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
             }, 1000);
 
-            // ৩. Seen (৩ সেকেন্ড পর এবং আগের সিন রিমুভ হবে)
             setTimeout(() => {
-                clearPreviousSeen(); // আগের সিন মুছে ফেলবে
+                clearPreviousSeen(); 
                 currentStatus.innerHTML = '<img src="https://i.pravatar.cc/150?u=jacklyn" class="seen-img">';
             }, 3000);
 
             if (replyIndex < autoReplies.length) {
-                // ৪. Typing Start (৫ সেকেন্ড পর)
                 setTimeout(() => {
                     typingIndicator.style.display = 'block';
                     scrollToBottom();
                 }, 5000);
 
-                // ৫. Auto Reply (১০ সেকেন্ড পর)
                 setTimeout(() => {
                     typingIndicator.style.display = 'none';
                     const replyWrapper = document.createElement('div');

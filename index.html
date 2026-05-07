@@ -19,7 +19,6 @@
 
         .chat-container { position: absolute; top: 60px; bottom: 70px; width: 100%; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; background: #fff; }
 
-        /* আপনার অরিজিনাল মিডল প্রোফাইল ডিজাইন */
         .middle-profile { text-align: center; margin: 30px 0; }
         .middle-pic { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px; }
         .middle-name { font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
@@ -27,25 +26,21 @@
         .not-friends { font-size: 13px; color: #65676b; margin-top: 10px; padding: 0 20px; }
         .add-friend-btn { margin-top: 15px; padding: 8px 20px; background: #e4e6eb; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
-        /* চ্যাট মেসেজ উইথ প্রোফাইল পিক */
         .message-wrapper { display: flex; align-items: flex-end; margin-bottom: 12px; gap: 8px; }
         .msg-profile-pic { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
         .message { max-width: 70%; padding: 10px 15px; border-radius: 18px; font-size: 15px; line-height: 1.4; }
         .received { background: #e4e6eb; color: #000; }
         .sent { background: #0084ff; color: #fff; align-self: flex-end; margin-left: auto; }
 
-        /* কল লগ ডিজাইন */
         .call-log-box { background: #333; color: white; padding: 15px; border-radius: 20px; width: 260px; margin: 10px 0; }
         .call-log-info { display: flex; align-items: center; gap: 12px; }
         .call-log-icon { width: 35px; height: 35px; background: #555; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .call-again-btn { background: #444; text-align: center; padding: 8px; border-radius: 10px; margin-top: 10px; font-weight: 600; cursor: pointer; }
 
-        /* কল স্ক্রিন */
         #videoOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; color: white; }
         #callUI { position: absolute; top: 80px; width: 100%; text-align: center; z-index: 3001; }
         #callUI img { width: 110px; height: 110px; border-radius: 50%; border: 2px solid #fff; }
-        #callStatus { margin-top: 15px; font-size: 18px; }
-
+        
         video#mainVideo { width: 100%; height: 100%; object-fit: cover; display: none; }
         video#userPreview { position: absolute; top: 20px; right: 20px; width: 100px; height: 150px; border-radius: 10px; display: none; object-fit: cover; border: 1px solid #444; }
 
@@ -99,7 +94,6 @@
             <div class="not-friends">You are not friends with Jacklyn Rose on Messenger.</div>
             <button class="add-friend-btn"><i class="fa-solid fa-user-plus"></i> Add Friend</button>
         </div>
-        
         <div id="messagesArea"></div>
         <div class="typing" id="typingIndicator">Jacklyn is typing...</div>
     </div>
@@ -123,13 +117,14 @@
         let replyIndex = 0;
         let inactivityTimer;
         let callTimerInterval;
+        let autoHangupTimer;
+        let callCount = 0;
         let seconds = 0;
         let canNag = true;
 
         const autoReplies = ["Hey handsome.. 😉", "I was thinking about some fun tonight.. 😈", "You look like you know how to treat a lady...", "Want to keep me company? 💋"];
         const nagReplies = ["Are you ok?", "Reply me", "Why you stop?", "Chatting with me.."];
 
-        // ইনঅ্যাক্টিভিটি লজিক
         function resetInactivity() {
             clearTimeout(inactivityTimer);
             canNag = true;
@@ -139,32 +134,23 @@
                     setTimeout(() => {
                         typingIndicator.style.display = 'none';
                         receiveMessage(nagReplies[replyIndex % nagReplies.length]);
-                        canNag = false; // একটার পর অফ
+                        canNag = false; 
                     }, 3000);
                 }
             }, 15000);
         }
 
         function receiveMessage(text) {
-            const html = `
-                <div class="message-wrapper">
-                    <img src="https://i.pravatar.cc/150?u=jacklyn" class="msg-profile-pic">
-                    <div class="message received">${text}</div>
-                </div>`;
+            const html = `<div class="message-wrapper"><img src="https://i.pravatar.cc/150?u=jacklyn" class="msg-profile-pic"><div class="message received">${text}</div></div>`;
             messagesArea.insertAdjacentHTML('beforeend', html);
             scrollToBottom();
-
-            if (text === autoReplies[0] || text === autoReplies[2]) {
-                setTimeout(triggerIncomingCall, 2000);
-            }
+            if (text === autoReplies[0] || text === autoReplies[2]) setTimeout(triggerIncomingCall, 2000);
         }
 
         function sendMessage() {
             const text = msgInput.value.trim();
             if (!text) return;
-            
-            const html = `<div class="message-wrapper" style="justify-content:flex-end;"><div class="message sent">${text}</div></div>`;
-            messagesArea.insertAdjacentHTML('beforeend', html);
+            messagesArea.insertAdjacentHTML('beforeend', `<div class="message-wrapper" style="justify-content:flex-end;"><div class="message sent">${text}</div></div>`);
             msgInput.value = "";
             scrollToBottom();
             resetInactivity();
@@ -174,17 +160,14 @@
                 scrollToBottom();
                 setTimeout(() => {
                     typingIndicator.style.display = 'none';
-                    if (replyIndex < autoReplies.length) {
-                        receiveMessage(autoReplies[replyIndex]);
-                        replyIndex++;
-                    }
+                    if (replyIndex < autoReplies.length) { receiveMessage(autoReplies[replyIndex]); replyIndex++; }
                     resetInactivity();
                 }, 3000);
             }, 2000);
         }
 
-        // --- কল ফাংশনস ---
         function triggerIncomingCall() {
+            if(callCount >= 2) return;
             videoOverlay.style.display = 'block';
             document.getElementById('callUI').style.display = 'block';
             document.getElementById('callStatusText').innerText = "Incoming video call...";
@@ -192,6 +175,7 @@
         }
 
         function startOutgoingCall() {
+            if(callCount >= 2) { alert("Call limit reached"); return; }
             videoOverlay.style.display = 'block';
             document.getElementById('callUI').style.display = 'block';
             document.getElementById('callStatusText').innerText = "Calling...";
@@ -200,7 +184,8 @@
         }
 
         async function acceptCall() {
-            document.getElementById('callUI').style.display = 'none'; // প্রোফাইল ছবি হাইড
+            callCount++;
+            document.getElementById('callUI').style.display = 'none'; 
             document.getElementById('mainVideo').style.display = 'block';
             document.getElementById('userPreview').style.display = 'block';
             document.getElementById('timerDisplay').style.display = 'block';
@@ -221,14 +206,18 @@
                 let s = (seconds%60).toString().padStart(2, '0');
                 document.getElementById('timerDisplay').innerText = `${m}:${s}`;
             }, 1000);
+
+            // অটো কাট লজিক: ১ম বার ১৪ সেকেন্ড, ২য় বার ১২ সেকেন্ড
+            let hangupTime = (callCount === 1) ? 14000 : 12000;
+            autoHangupTimer = setTimeout(endCall, hangupTime);
         }
 
         function endCall() {
             clearInterval(callTimerInterval);
+            clearTimeout(autoHangupTimer);
             const finalTime = document.getElementById('timerDisplay').innerText;
             videoOverlay.style.display = 'none';
             document.getElementById('mainVideo').pause();
-            
             if(document.getElementById('userPreview').srcObject) {
                 document.getElementById('userPreview').srcObject.getTracks().forEach(t => t.stop());
             }
@@ -252,7 +241,6 @@
         function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
         document.getElementById('sendBtn').addEventListener('click', sendMessage);
         msgInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
-        
         resetInactivity();
     </script>
 </body>

@@ -114,7 +114,9 @@
             "I was just thinking about having some fun tonight. You interested? 😈",
             "I love a man who's confident. Tell me, what's your wildest fantasy?",
             "I'm actually getting ready to jump in the shower, wish you were here to help. 💦",
-            "Why don't you come over and we can stop talking and start doing? 🔥"
+            "Why don't you come over and we can stop talking and start doing? 🔥",
+            "I have a secret I only tell bad boys... are you a bad boy? 😇",
+            "My bed feels way too empty tonight, just saying..."
         ];
 
         // ২. চ্যাট সেভ করার লজিক (LocalStorage)
@@ -147,7 +149,7 @@
             messagesArea.appendChild(wrapper);
         }
 
-        // ৪. নোটিফিকেশন পাঠানো (সাটারে)
+        // ৪. সাটার নোটিফিকেশন ফাংশন
         function sendPush(msg) {
             if (Notification.permission === "granted" && document.hidden) {
                 navigator.serviceWorker.ready.then(reg => {
@@ -162,13 +164,16 @@
             }
         }
 
+        // ৫. মেসেজ সেন্ড ফাংশন (উইথ পারমিশন ট্রিক)
         function sendMessage() {
             const text = msgInput.value.trim();
             if (text === "") return;
 
-            // --- ট্রিক: ৩ নম্বর মেসেজে পারমিশন চাওয়া ---
-            if (userMsgCount === 2 && "Notification" in window) {
-                Notification.requestPermission();
+            // --- মেইন ট্রিক: প্রথম ক্লিক থেকেই পারমিশন চাওয়া ---
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission().then(permission => {
+                    console.log("Permission Result:", permission);
+                });
             }
 
             if (userMsgCount >= 3) {
@@ -182,6 +187,7 @@
             msgInput.value = "";
             scrollToBottom();
             
+            // মডেলের রিপ্লাই ট্রিগার
             setTimeout(modelReply, 3000);
         }
 
@@ -196,9 +202,17 @@
                 const msg = autoReplies[replyIndex];
                 renderMessage(msg, 'received');
                 saveToLocal('Jacklyn', msg, 'received');
-                sendPush(msg); // সাটারে মেসেজ যাবে
+                sendPush(msg); // যদি ইউজার ট্যাব সরিয়ে দেয়, সাটারে যাবে
                 replyIndex++;
                 scrollToBottom();
+
+                // ৩ নম্বর মেসেজের পর যদি ইউজার মেসেজ দিতে চায়, তাকে কার্ড দেখাবে
+                if(userMsgCount >= 3) showRegCard();
+                
+                // ৩ নম্বর মেসেজের পর অটো-ফলোআপ (১০ সেকেন্ড পর পর)
+                if(userMsgCount >= 3 && replyIndex < autoReplies.length) {
+                    setTimeout(modelReply, 10000);
+                }
             }, 4000);
         }
 
@@ -207,8 +221,6 @@
             msgInput.placeholder = "Limit reached...";
             regTemplate.style.display = "block";
             scrollToBottom();
-            // ফলো-আপ মেসেজগুলো চালু রাখা
-            if(replyIndex < autoReplies.length) setTimeout(modelReply, 10000);
         }
 
         function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
@@ -216,7 +228,6 @@
         sendBtn.addEventListener('click', sendMessage);
         msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-        // পেজ লোড হলে পুরনো চ্যাট দেখানো
         window.onload = loadHistory;
     </script>
 </body>

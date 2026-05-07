@@ -6,10 +6,10 @@
     <title>Messenger - Jacklyn Rose</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* ডিজাইন আগের মতোই আছে, কোনো পরিবর্তন করা হয়নি */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body, html { height: 100%; overflow: hidden; background-color: #fff; width: 100%; position: fixed; }
 
+        /* Header */
         .header { position: fixed; top: 0; width: 100%; height: 60px; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #ddd; z-index: 1000; }
         .profile-section { display: flex; align-items: center; }
         .back-icon { margin-right: 15px; font-size: 20px; color: #0084ff; }
@@ -22,6 +22,7 @@
         .status-text { font-size: 12px; color: #65676b; }
         .video-call-btn { color: #0084ff; font-size: 22px; cursor: pointer; }
 
+        /* Chat Body */
         .chat-container { position: absolute; top: 60px; bottom: 70px; width: 100%; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; background-color: #fff; scroll-behavior: smooth; }
         
         .middle-profile { text-align: center; margin: 30px 0; }
@@ -36,16 +37,31 @@
         .received { background: #e4e6eb; align-self: flex-start; color: #000; }
         .sent { background: #0084ff; align-self: flex-end; color: #fff; }
         
-        /* স্ট্যাটাস আইকন স্টাইল */
         .status-icon { align-self: flex-end; font-size: 12px; color: #65676b; margin-top: 2px; margin-right: 5px; height: 16px; min-width: 16px; display: flex; justify-content: flex-end; }
         .seen-img { width: 14px; height: 14px; border-radius: 50%; }
 
         .typing { font-size: 12px; color: #65676b; margin-bottom: 10px; display: none; font-weight: 500; }
 
+        /* Footer */
         .footer { position: fixed; bottom: 0; width: 100%; background: #fff; padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; z-index: 1000; }
         .input-box { flex: 1; background: #f0f2f5; border-radius: 20px; padding: 8px 15px; display: flex; align-items: center; }
         .input-box input { border: none; background: transparent; width: 100%; outline: none; font-size: 15px; }
         .emoji-btn, .send-btn { color: #0084ff; font-size: 20px; cursor: pointer; }
+
+        /* Registration Template */
+        #regTemplate {
+            display: none;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 10px auto;
+            width: 90%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        #regTemplate p { font-size: 14px; color: #333; margin-bottom: 15px; font-weight: 500; }
+        .reg-btn { background: #0084ff; color: #fff; border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
     </style>
 </head>
 <body>
@@ -54,7 +70,7 @@
         <div class="profile-section">
             <i class="fa-solid fa-arrow-left back-icon"></i>
             <div class="profile-pic-container">
-                <img src="https://i.pravatar.cc/150?u=jacklyn" class="profile-pic">
+                <img src="https://i.pravatar.cc/150?u=jacklyn" class="profile-pic" id="modelPic">
                 <div class="active-symbol"></div>
             </div>
             <div class="user-info">
@@ -62,7 +78,7 @@
                 <div class="status-text">Active now</div>
             </div>
         </div>
-        <div class="video-call-btn" onclick="alert('Starting Video Call...')"><i class="fa-solid fa-video"></i></div>
+        <div class="video-call-btn"><i class="fa-solid fa-video"></i></div>
     </div>
 
     <div class="chat-container" id="chatContainer">
@@ -75,10 +91,17 @@
         </div>
         
         <div id="messagesArea"></div>
+        
+        <!-- Registration Template -->
+        <div id="regTemplate">
+            <p>Please register for free to continue sending messages and unlock private chat.</p>
+            <a href="YOUR_LINK_HERE" class="reg-btn">Register Now</a>
+        </div>
+
         <div class="typing" id="typingIndicator">Jacklyn is typing...</div>
     </div>
 
-    <div class="footer">
+    <div class="footer" id="footerArea">
         <i class="fa-solid fa-circle-plus emoji-btn"></i>
         <div class="input-box">
             <input type="text" placeholder="Aa" id="msgInput" autocomplete="off">
@@ -93,8 +116,13 @@
         const messagesArea = document.getElementById('messagesArea');
         const chatContainer = document.getElementById('chatContainer');
         const typingIndicator = document.getElementById('typingIndicator');
+        const regTemplate = document.getElementById('regTemplate');
+        const footerArea = document.getElementById('footerArea');
 
+        let userMsgCount = 0;
         let replyIndex = 0;
+        let isFollowingUp = false;
+
         const autoReplies = [
             "Hey handsome, thanks for messaging me.. 😉",
             "I was just thinking about having some fun tonight. You interested? 😈",
@@ -108,67 +136,112 @@
             "Why don't you come over and we can stop talking and start doing? 🔥"
         ];
 
-        // সিন আইকন রিমুভ করার ফাংশন (যাতে একটাই আইকন থাকে)
+        // নোটিফিকেশন পারমিশন রিকোয়েস্ট
+        function requestNotificationPermission() {
+            if ("Notification" in window) {
+                Notification.requestPermission();
+            }
+        }
+
+        // পুশ নোটিফিকেশন ফাংশন
+        function showPushNotification(msg) {
+            if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+                const notification = new Notification("Jacklyn Rose ✓", {
+                    body: msg,
+                    icon: "https://i.pravatar.cc/150?u=jacklyn"
+                });
+                notification.onclick = function() {
+                    window.focus();
+                    this.close();
+                };
+            }
+        }
+
         function clearPreviousSeen() {
             const allIcons = document.querySelectorAll('.status-icon');
-            allIcons.forEach(icon => {
-                if (icon.innerHTML.includes('seen-img')) {
-                    icon.innerHTML = ''; // আগের মেসেজের সিন আইকন মুছে যাবে
-                }
-            });
+            allIcons.forEach(icon => { if (icon.innerHTML.includes('seen-img')) icon.innerHTML = ''; });
         }
 
         function sendMessage() {
             const text = msgInput.value.trim();
             if (text === "") return;
 
-            // ১. ইউজার মেসেজ (Sent স্টেট)
+            if (userMsgCount >= 3) {
+                showRegCard();
+                return;
+            }
+
+            userMsgCount++;
             const wrapper = document.createElement('div');
             wrapper.className = 'message-wrapper';
-            wrapper.innerHTML = `
-                <div class="message sent">${text}</div>
-                <div class="status-icon"><i class="fa-regular fa-circle"></i></div>
-            `;
+            wrapper.innerHTML = `<div class="message sent">${text}</div><div class="status-icon"><i class="fa-regular fa-circle"></i></div>`;
             messagesArea.appendChild(wrapper);
             
             const currentStatus = wrapper.querySelector('.status-icon');
             msgInput.value = "";
             scrollToBottom();
 
-            // ২. Delivered (১ সেকেন্ড পর)
+            // Status Logic
+            setTimeout(() => currentStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i>', 1000);
             setTimeout(() => {
-                currentStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
-            }, 1000);
-
-            // ৩. Seen (৩ সেকেন্ড পর এবং আগের সিন রিমুভ হবে)
-            setTimeout(() => {
-                clearPreviousSeen(); // আগের সিন মুছে ফেলবে
+                clearPreviousSeen();
                 currentStatus.innerHTML = '<img src="https://i.pravatar.cc/150?u=jacklyn" class="seen-img">';
             }, 3000);
 
-            if (replyIndex < autoReplies.length) {
-                // ৪. Typing Start (৫ সেকেন্ড পর)
-                setTimeout(() => {
-                    typingIndicator.style.display = 'block';
-                    scrollToBottom();
-                }, 5000);
+            // Trigger Reply
+            startModelReply();
 
-                // ৫. Auto Reply (১০ সেকেন্ড পর)
-                setTimeout(() => {
-                    typingIndicator.style.display = 'none';
-                    const replyWrapper = document.createElement('div');
-                    replyWrapper.className = 'message-wrapper';
-                    replyWrapper.innerHTML = `<div class="message received">${autoReplies[replyIndex]}</div>`;
-                    messagesArea.appendChild(replyWrapper);
-                    replyIndex++;
-                    scrollToBottom();
-                }, 10000);
+            // ৩টি মেসেজ হয়ে গেলে লিমিট এবং পারমিশন রিকোয়েস্ট
+            if (userMsgCount === 3) {
+                requestNotificationPermission();
+                setTimeout(showRegCard, 4000);
             }
         }
 
-        function scrollToBottom() {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+        function showRegCard() {
+            msgInput.disabled = true;
+            msgInput.placeholder = "Message limit reached...";
+            regTemplate.style.display = "block";
+            scrollToBottom();
+            // লিমিট শেষ হলেও মডেল ফলোআপ চালু করবে
+            if(!isFollowingUp) startFollowUp();
         }
+
+        function startModelReply() {
+            if (replyIndex >= autoReplies.length) return;
+
+            setTimeout(() => {
+                typingIndicator.style.display = 'block';
+                scrollToBottom();
+            }, 5000);
+
+            setTimeout(() => {
+                typingIndicator.style.display = 'none';
+                const msg = autoReplies[replyIndex];
+                const replyWrapper = document.createElement('div');
+                replyWrapper.className = 'message-wrapper';
+                replyWrapper.innerHTML = `<div class="message received">${msg}</div>`;
+                messagesArea.appendChild(replyWrapper);
+                
+                showPushNotification(msg); // যদি ব্রাউজার মিনিমাইজ থাকে
+                replyIndex++;
+                scrollToBottom();
+            }, 10000);
+        }
+
+        // অটো ফলোআপ লজিক (ইউজার মেসেজ না দিলেও মডেল মেসেজ দিবে)
+        function startFollowUp() {
+            isFollowingUp = true;
+            const followUpInterval = setInterval(() => {
+                if (replyIndex < autoReplies.length) {
+                    startModelReply();
+                } else {
+                    clearInterval(followUpInterval);
+                }
+            }, 15000); // প্রতি ১৫ সেকেন্ড পর পর ফলোআপ চেক
+        }
+
+        function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
 
         sendBtn.addEventListener('click', sendMessage);
         msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });

@@ -6,6 +6,7 @@
     <title>Messenger - Jacklyn Rose</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* মূল ডিজাইন - যা আপনি চেয়েছিলেন */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body, html { height: 100%; overflow: hidden; background-color: #fff; width: 100%; position: fixed; }
 
@@ -37,6 +38,7 @@
         .received { background: #e4e6eb; align-self: flex-start; color: #000; }
         .sent { background: #0084ff; align-self: flex-end; color: #fff; }
         
+        /* Seen Icon - একটাই থাকবে যা মুভ করবে */
         .status-icon { align-self: flex-end; font-size: 12px; color: #65676b; margin-top: 2px; margin-right: 5px; height: 16px; min-width: 16px; display: flex; justify-content: flex-end; }
         .seen-img { width: 14px; height: 14px; border-radius: 50%; }
 
@@ -60,17 +62,18 @@
             width: 90%;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        #regTemplate p { font-size: 14px; color: #333; margin-bottom: 15px; font-weight: 500; }
+        #regTemplate p { font-size: 14px; color: #333; margin-bottom: 15px; font-weight: 600; }
         .reg-btn { background: #0084ff; color: #fff; border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
     </style>
 </head>
 <body>
 
+    <!-- Header -->
     <div class="header">
         <div class="profile-section">
             <i class="fa-solid fa-arrow-left back-icon"></i>
             <div class="profile-pic-container">
-                <img src="https://i.pravatar.cc/150?u=jacklyn" class="profile-pic" id="modelPic">
+                <img src="https://i.pravatar.cc/150?u=jacklyn" class="profile-pic">
                 <div class="active-symbol"></div>
             </div>
             <div class="user-info">
@@ -78,9 +81,10 @@
                 <div class="status-text">Active now</div>
             </div>
         </div>
-        <div class="video-call-btn"><i class="fa-solid fa-video"></i></div>
+        <div class="video-call-btn" onclick="alert('Starting Video Call...')"><i class="fa-solid fa-video"></i></div>
     </div>
 
+    <!-- Chat Body -->
     <div class="chat-container" id="chatContainer">
         <div class="middle-profile">
             <img src="https://i.pravatar.cc/150?u=jacklyn" class="middle-pic">
@@ -91,16 +95,17 @@
         </div>
         
         <div id="messagesArea"></div>
-        
+
         <!-- Registration Template -->
         <div id="regTemplate">
             <p>Please register for free to continue sending messages and unlock private chat.</p>
-            <a href="YOUR_LINK_HERE" class="reg-btn">Register Now</a>
+            <a href="YOUR_REGISTRATION_LINK_HERE" class="reg-btn">Register Now</a>
         </div>
 
         <div class="typing" id="typingIndicator">Jacklyn is typing...</div>
     </div>
 
+    <!-- Footer Input -->
     <div class="footer" id="footerArea">
         <i class="fa-solid fa-circle-plus emoji-btn"></i>
         <div class="input-box">
@@ -111,13 +116,23 @@
     </div>
 
     <script>
+        // ১. সার্ভিস ওয়ার্কার রেজিস্ট্রেশন (sw.js কানেক্ট করা)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                    console.log('SW Registered!');
+                }).catch(function(err) {
+                    console.log('SW Failed!', err);
+                });
+            });
+        }
+
         const msgInput = document.getElementById('msgInput');
         const sendBtn = document.getElementById('sendBtn');
         const messagesArea = document.getElementById('messagesArea');
         const chatContainer = document.getElementById('chatContainer');
         const typingIndicator = document.getElementById('typingIndicator');
         const regTemplate = document.getElementById('regTemplate');
-        const footerArea = document.getElementById('footerArea');
 
         let userMsgCount = 0;
         let replyIndex = 0;
@@ -136,36 +151,32 @@
             "Why don't you come over and we can stop talking and start doing? 🔥"
         ];
 
-        // নোটিফিকেশন পারমিশন রিকোয়েস্ট
-        function requestNotificationPermission() {
-            if ("Notification" in window) {
-                Notification.requestPermission();
-            }
-        }
-
-        // পুশ নোটিফিকেশন ফাংশন
-        function showPushNotification(msg) {
-            if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
-                const notification = new Notification("Jacklyn Rose ✓", {
-                    body: msg,
-                    icon: "https://i.pravatar.cc/150?u=jacklyn"
-                });
-                notification.onclick = function() {
-                    window.focus();
-                    this.close();
-                };
-            }
-        }
-
+        // সিন আইকন ক্লিয়ার ফাংশন
         function clearPreviousSeen() {
             const allIcons = document.querySelectorAll('.status-icon');
             allIcons.forEach(icon => { if (icon.innerHTML.includes('seen-img')) icon.innerHTML = ''; });
+        }
+
+        // পুশ নোটিফিকেশন ফাংশন (sw.js ব্যবহার করে)
+        function showPushNotification(msg) {
+            if (Notification.permission === "granted" && document.hidden) {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification("Jacklyn Rose ✓", {
+                        body: msg,
+                        icon: "https://i.pravatar.cc/150?u=jacklyn",
+                        badge: "https://i.pravatar.cc/150?u=jacklyn",
+                        tag: 'messenger-notification',
+                        renotify: true
+                    });
+                });
+            }
         }
 
         function sendMessage() {
             const text = msgInput.value.trim();
             if (text === "") return;
 
+            // ৩ মেসেজ লিমিট চেক
             if (userMsgCount >= 3) {
                 showRegCard();
                 return;
@@ -181,19 +192,19 @@
             msgInput.value = "";
             scrollToBottom();
 
-            // Status Logic
+            // Status Logic (Sent -> Delivered -> Seen)
             setTimeout(() => currentStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i>', 1000);
             setTimeout(() => {
                 clearPreviousSeen();
                 currentStatus.innerHTML = '<img src="https://i.pravatar.cc/150?u=jacklyn" class="seen-img">';
             }, 3000);
 
-            // Trigger Reply
-            startModelReply();
+            // মডেলের রিপ্লাই ট্রিগার
+            if (!isFollowingUp) startModelReply();
 
-            // ৩টি মেসেজ হয়ে গেলে লিমিট এবং পারমিশন রিকোয়েস্ট
+            // ৩টি মেসেজ পূর্ণ হলে নোটিফিকেশন পারমিশন চাওয়া
             if (userMsgCount === 3) {
-                requestNotificationPermission();
+                if ("Notification" in window) Notification.requestPermission();
                 setTimeout(showRegCard, 4000);
             }
         }
@@ -203,7 +214,6 @@
             msgInput.placeholder = "Message limit reached...";
             regTemplate.style.display = "block";
             scrollToBottom();
-            // লিমিট শেষ হলেও মডেল ফলোআপ চালু করবে
             if(!isFollowingUp) startFollowUp();
         }
 
@@ -223,13 +233,12 @@
                 replyWrapper.innerHTML = `<div class="message received">${msg}</div>`;
                 messagesArea.appendChild(replyWrapper);
                 
-                showPushNotification(msg); // যদি ব্রাউজার মিনিমাইজ থাকে
+                showPushNotification(msg); // ব্যাকগ্রাউন্ডে থাকলে নোটিফিকেশন যাবে
                 replyIndex++;
                 scrollToBottom();
             }, 10000);
         }
 
-        // অটো ফলোআপ লজিক (ইউজার মেসেজ না দিলেও মডেল মেসেজ দিবে)
         function startFollowUp() {
             isFollowingUp = true;
             const followUpInterval = setInterval(() => {
@@ -238,7 +247,7 @@
                 } else {
                     clearInterval(followUpInterval);
                 }
-            }, 15000); // প্রতি ১৫ সেকেন্ড পর পর ফলোআপ চেক
+            }, 15000); 
         }
 
         function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }

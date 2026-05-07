@@ -1,6 +1,6 @@
 // sw.js
 self.addEventListener('push', function(event) {
-    let messageData = event.data ? event.data.text() : 'Hey! Are you there? 😉';
+    let messageData = event.data ? event.data.text() : 'You have a new message! 😉';
 
     const options = {
         body: messageData,
@@ -10,7 +10,7 @@ self.addEventListener('push', function(event) {
         tag: 'jacklyn-msg',
         renotify: true,
         data: {
-            url: 'YOUR_WEBSITE_URL' // এখানে আপনার ওয়েবসাইট লিঙ্ক দিন
+            url: '/' // এটি নিজে থেকেই আপনার সাইটের ইউআরএল নিয়ে নিবে
         }
     };
 
@@ -19,22 +19,20 @@ self.addEventListener('push', function(event) {
     );
 });
 
+// নোটিফিকেশনে ক্লিক করলে ওয়েবসাইটে ফিরিয়ে নেওয়া
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
-    const targetUrl = event.notification.data.url;
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-            // যদি সাইটটি অন্য কোনো ট্যাবে ওপেন থাকে তবে সেখানে ফোকাস করো
             for (var i = 0; i < windowClients.length; i++) {
                 var client = windowClients[i];
-                if (client.url === targetUrl && 'focus' in client) {
+                if ('focus' in client) {
                     return client.focus();
                 }
             }
-            // যদি ওপেন না থাকে তবে নতুন করে ওপেন করো
             if (clients.openWindow) {
-                return clients.openWindow(targetUrl);
+                return clients.openWindow('/');
             }
         })
     );

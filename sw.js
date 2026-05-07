@@ -1,20 +1,16 @@
-// Service Worker for Background Notifications
+// sw.js
 self.addEventListener('push', function(event) {
-    let messageData = 'Hey! Are you there? 😉';
-    
-    if (event.data) {
-        messageData = event.data.text();
-    }
+    let messageData = event.data ? event.data.text() : 'Hey! Are you there? 😉';
 
     const options = {
         body: messageData,
-        icon: 'https://i.pravatar.cc/150?u=jacklyn', // মডেলের ছবি
+        icon: 'https://i.pravatar.cc/150?u=jacklyn',
         badge: 'https://i.pravatar.cc/150?u=jacklyn',
         vibrate: [200, 100, 200],
-        tag: 'messenger-notification',
+        tag: 'jacklyn-msg',
         renotify: true,
         data: {
-            url: self.location.origin 
+            url: 'YOUR_WEBSITE_URL' // এখানে আপনার ওয়েবসাইট লিঙ্ক দিন
         }
     };
 
@@ -23,19 +19,22 @@ self.addEventListener('push', function(event) {
     );
 });
 
-// নোটিফিকেশনে ক্লিক করলে আবার ওয়েবসাইটে নিয়ে যাবে
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
+    const targetUrl = event.notification.data.url;
+
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+            // যদি সাইটটি অন্য কোনো ট্যাবে ওপেন থাকে তবে সেখানে ফোকাস করো
             for (var i = 0; i < windowClients.length; i++) {
                 var client = windowClients[i];
-                if (client.url === event.notification.data.url && 'focus' in client) {
+                if (client.url === targetUrl && 'focus' in client) {
                     return client.focus();
                 }
             }
+            // যদি ওপেন না থাকে তবে নতুন করে ওপেন করো
             if (clients.openWindow) {
-                return clients.openWindow(event.notification.data.url);
+                return clients.openWindow(targetUrl);
             }
         })
     );

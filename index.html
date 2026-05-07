@@ -6,7 +6,6 @@
     <title>Messenger - Jacklyn Rose</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* ডিজাইন আগের মতোই রাখা হয়েছে */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body, html { height: 100%; overflow: hidden; background-color: #fff; width: 100%; position: fixed; }
 
@@ -17,8 +16,8 @@
         .profile-pic { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
         .active-symbol { position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; background-color: #31a24c; border: 2px solid #fff; border-radius: 50%; }
         .user-info { margin-left: 10px; }
-        .user-name { font-weight: bold; font-size: 16px; display: flex; align-items: center; }
-        .verified-badge { color: #0084ff; font-size: 14px; margin-left: 5px; }
+        .user-name { font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 4px; } /* গ্যাপ কমিয়ে রিয়েল করা হয়েছে */
+        .verified-badge { color: #0084ff; font-size: 13px; } 
         .status-text { font-size: 12px; color: #65676b; }
         .video-call-btn { color: #0084ff; font-size: 22px; cursor: pointer; }
 
@@ -26,10 +25,10 @@
         
         .middle-profile { text-align: center; margin: 30px 0; }
         .middle-pic { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px; }
-        .middle-name { font-size: 22px; font-weight: 800; }
+        .middle-name { font-size: 22px; font-weight: 800; display: flex; justify-content: center; align-items: center; gap: 5px; }
         .location { color: #65676b; font-size: 14px; margin-top: 5px; }
         .not-friends { font-size: 13px; color: #65676b; margin-top: 10px; padding: 0 20px; }
-        .add-friend-btn { margin-top: 15px; padding: 8px 20px; background: #e4e6eb; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .add-friend-btn { margin-top: 15px; padding: 8px 20px; background: #e4e6eb; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .add-friend-btn.sent { background: #0084ff; color: #fff; }
 
         .message-wrapper { display: flex; flex-direction: column; margin-bottom: 12px; position: relative; width: 100%; }
@@ -46,9 +45,19 @@
         .input-box { flex: 1; background: #f0f2f5; border-radius: 20px; padding: 8px 15px; display: flex; align-items: center; }
         .input-box input { border: none; background: transparent; width: 100%; outline: none; font-size: 15px; }
         .emoji-btn, .send-btn { color: #0084ff; font-size: 20px; cursor: pointer; }
+
+        /* ভিডিও কল ওভারলে */
+        #videoOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .end-call { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; background: red; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; cursor: pointer; }
     </style>
 </head>
 <body>
+
+    <div id="videoOverlay">
+        <video id="callVideo" playsinline></video>
+        <div class="end-call" onclick="endCall()"><i class="fa-solid fa-phone-slash"></i></div>
+    </div>
 
     <div class="header">
         <div class="profile-section">
@@ -62,7 +71,7 @@
                 <div class="status-text">Active now</div>
             </div>
         </div>
-        <div class="video-call-btn" onclick="alert('Starting Video Call...')"><i class="fa-solid fa-video"></i></div>
+        <div class="video-call-btn" onclick="startCall('your-video-url-here.mp4')"><i class="fa-solid fa-video"></i></div>
     </div>
 
     <div class="chat-container" id="chatContainer">
@@ -93,71 +102,109 @@
         const messagesArea = document.getElementById('messagesArea');
         const chatContainer = document.getElementById('chatContainer');
         const typingIndicator = document.getElementById('typingIndicator');
-        const addFriendBtn = document.getElementById('addFriendBtn');
-        const friendStatusText = document.getElementById('friendStatusText');
-        const plusIcon = document.getElementById('plusIcon');
-        const emojiIcon = document.getElementById('emojiIcon');
+        const videoOverlay = document.getElementById('videoOverlay');
+        const callVideo = document.getElementById('callVideo');
 
         let replyIndex = 0;
+        let inactivityTimer;
+        let inactivityIndex = 0;
+
         const autoReplies = [
             "Hey handsome, thanks for messaging me.. 😉",
             "I was just thinking about having some fun tonight. You interested? 😈",
             "You look like a guy who knows how to treat a lady right...",
-            "I'm feeling a bit lonely in this big city, want to keep me company? 💋",
-            "I love a man who's confident. Tell me, what's your wildest fantasy?",
-            "I'm actually getting ready to jump in the shower, wish you were here to help. 💦",
-            "Are you always this charming or am I just lucky?",
-            "I have a secret I only tell bad boys... are you a bad boy? 😇",
-            "My bed feels way too empty tonight, just saying...",
-            "Why don't you come over and we can stop talking and start doing? 🔥"
+            "I'm feeling a bit lonely in this big city, want to keep me company? 💋"
         ];
 
-        // ১. অ্যাড ফ্রেন্ড বাটন ফাংশন
-        addFriendBtn.addEventListener('click', function() {
-            this.innerHTML = '<i class="fa-solid fa-user-check"></i> Request Sent';
-            this.classList.add('sent');
-            friendStatusText.innerText = "Friend request sent to Jacklyn Rose.";
-        });
+        const naggingReplies = [
+            "Are you ok?",
+            "Reply me...",
+            "Why you stop?",
+            "Keep chatting with me..."
+        ];
 
-        // ২. প্লাস ও ইমোজি আইকনে অ্যালার্ট
-        const showError = () => alert("Something Wrong");
-        plusIcon.addEventListener('click', showError);
-        emojiIcon.addEventListener('click', showError);
+        // ভিডিও সোর্স সেট করুন এখানে
+        const videoLinks = [
+            "https://www.w3schools.com/html/mov_bbb.mp4", // ১ম কল
+            "https://www.w3schools.com/html/movie.mp4"    // ২য় কল
+        ];
 
-        function clearPreviousSeen() {
-            const allIcons = document.querySelectorAll('.status-icon');
-            allIcons.forEach(icon => {
-                if (icon.innerHTML.includes('seen-img')) {
-                    icon.innerHTML = ''; 
+        // ইনঅ্যাক্টিভিটি লজিক (১০ সেকেন্ড)
+        function startInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                showNaggingMessage();
+            }, 10000);
+
+            // ৭ সেকেন্ডে টাইপিং শুরু
+            setTimeout(() => {
+                if(document.activeElement !== msgInput) {
+                    typingIndicator.style.display = 'block';
+                    scrollToBottom();
                 }
-            });
+            }, 7000);
+        }
+
+        function showNaggingMessage() {
+            typingIndicator.style.display = 'none';
+            if (inactivityIndex < naggingReplies.length) {
+                receiveMessage(naggingReplies[inactivityIndex]);
+                inactivityIndex++;
+                startInactivityTimer();
+            }
+        }
+
+        // কল শুরু ও শেষ ফাংশন
+        function startCall(url) {
+            videoOverlay.style.display = 'block';
+            callVideo.src = url;
+            callVideo.play();
+        }
+
+        function endCall() {
+            videoOverlay.style.display = 'none';
+            callVideo.pause();
+        }
+
+        function receiveMessage(text) {
+            const replyWrapper = document.createElement('div');
+            replyWrapper.className = 'message-wrapper';
+            replyWrapper.innerHTML = `<div class="message received">${text}</div>`;
+            messagesArea.appendChild(replyWrapper);
+            scrollToBottom();
+            
+            // কল ট্রিম লজিক
+            if (text === autoReplies[0]) {
+                setTimeout(() => startCall(videoLinks[0]), 1000);
+            } else if (text === autoReplies[2]) {
+                setTimeout(() => startCall(videoLinks[1]), 1000);
+            }
         }
 
         function sendMessage() {
             const text = msgInput.value.trim();
             if (text === "") return;
 
+            // ইনঅ্যাক্টিভিটি রিসেট
+            clearTimeout(inactivityTimer);
+            typingIndicator.style.display = 'none';
+
             const wrapper = document.createElement('div');
             wrapper.className = 'message-wrapper';
-            wrapper.innerHTML = `
-                <div class="message sent">${text}</div>
-                <div class="status-icon"><i class="fa-regular fa-circle"></i></div>
-            `;
+            wrapper.innerHTML = `<div class="message sent">${text}</div><div class="status-icon"><i class="fa-regular fa-circle"></i></div>`;
             messagesArea.appendChild(wrapper);
             
             const currentStatus = wrapper.querySelector('.status-icon');
             msgInput.value = "";
             scrollToBottom();
 
-            setTimeout(() => {
-                currentStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
-            }, 1000);
-
+            setTimeout(() => currentStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i>', 1000);
             setTimeout(() => {
                 clearPreviousSeen(); 
                 currentStatus.innerHTML = '<img src="https://i.pravatar.cc/150?u=jacklyn" class="seen-img">';
             }, 3000);
 
+            // অটো রিপ্লাই লজিক
             if (replyIndex < autoReplies.length) {
                 setTimeout(() => {
                     typingIndicator.style.display = 'block';
@@ -166,23 +213,35 @@
 
                 setTimeout(() => {
                     typingIndicator.style.display = 'none';
-                    const replyWrapper = document.createElement('div');
-                    replyWrapper.className = 'message-wrapper';
-                    replyWrapper.innerHTML = `<div class="message received">${autoReplies[replyIndex]}</div>`;
-                    messagesArea.appendChild(replyWrapper);
+                    receiveMessage(autoReplies[replyIndex]);
                     replyIndex++;
-                    scrollToBottom();
+                    startInactivityTimer(); // রিপ্লাই দেওয়ার পর টাইমার শুরু
                 }, 10000);
             }
         }
 
-        function scrollToBottom() {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+        // অন্যান্য ফাংশন আগের মতোই
+        document.getElementById('addFriendBtn').addEventListener('click', function() {
+            this.innerHTML = '<i class="fa-solid fa-user-check"></i> Request Sent';
+            this.classList.add('sent');
+        });
+
+        const showError = () => alert("Something Wrong");
+        document.getElementById('plusIcon').addEventListener('click', showError);
+        document.getElementById('emojiIcon').addEventListener('click', showError);
+
+        function clearPreviousSeen() {
+            const allIcons = document.querySelectorAll('.status-icon');
+            allIcons.forEach(icon => { if (icon.innerHTML.includes('seen-img')) icon.innerHTML = ''; });
         }
+
+        function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
 
         sendBtn.addEventListener('click', sendMessage);
         msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-        msgInput.addEventListener('focus', () => { setTimeout(scrollToBottom, 300); });
+
+        // শুরুতে টাইমার অন করা (যদি কেউ ভিজিট করে মেসেজ না দেয়)
+        startInactivityTimer();
     </script>
 </body>
 </html>

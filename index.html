@@ -6,306 +6,271 @@
     <title>Messenger Live</title>
     <style>
         :root {
-            --messenger-blue: #0084ff;
-            --bg-gray: #f0f2f5;
+            --pink-theme: #ff69b4;
+            --messenger-pink: #ff4d94;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
 
         body, html { 
             height: 100%; width: 100%; overflow: hidden; 
-            background-color: var(--bg-gray);
-            position: fixed; /* মোবাইল স্ক্রিন লক করার জন্য */
+            background: #fff; position: fixed;
         }
 
         .app-wrapper {
             height: 100vh; width: 100vw;
             display: flex; flex-direction: column;
-            background: #fff;
+            background: linear-gradient(rgba(255, 192, 203, 0.7), rgba(255, 192, 203, 0.7)), 
+                        url('https://i.ibb.co/LzNf9mS/pink-hearts.jpg') center/cover;
         }
 
-        /* Header */
+        /* Header - Exact as Screenshot */
         .header {
-            height: 60px; background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px); display: flex;
-            align-items: center; padding: 0 15px;
-            justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.08);
+            height: 60px; background: rgba(255, 255, 255, 0.9);
+            display: flex; align-items: center; padding: 0 12px;
+            justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05);
             z-index: 1000;
         }
 
-        .user-meta { display: flex; align-items: center; }
-        .avatar-box { position: relative; width: 40px; height: 40px; margin-right: 12px; }
-        .avatar-box img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-        .online-status { 
-            position: absolute; bottom: 2px; right: 2px; 
-            width: 12px; height: 12px; background: #31a24c; 
-            border-radius: 50%; border: 2.5px solid white; 
-        }
+        .user-meta { display: flex; align-items: center; gap: 10px; }
+        .back-icon { color: var(--messenger-pink); font-size: 24px; margin-right: 5px; cursor: pointer; }
+        .header-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        .header-info h4 { font-size: 16px; font-weight: 600; color: #000; }
 
-        .user-info h4 { font-size: 15px; font-weight: 600; color: #050505; }
-        .user-info p { font-size: 12px; color: #65676b; }
+        .header-icons { display: flex; gap: 18px; align-items: center; }
+        .header-icons img { width: 22px; height: 22px; cursor: pointer; }
 
-        /* Chat Area */
+        /* Chat Scroll Area */
         .chat-container {
-            flex: 1; overflow-y: auto; padding: 15px;
+            flex: 1; overflow-y: auto; padding: 20px 15px;
             display: flex; flex-direction: column;
-            background: white;
+            scroll-behavior: smooth;
         }
 
-        .profile-hero { text-align: center; margin: 30px 0; }
-        .hero-img { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px; }
-        .hero-name { font-size: 22px; font-weight: 700; }
-        .hero-sub { font-size: 13px; color: #65676b; margin-top: 5px; }
+        .profile-section { text-align: center; margin-bottom: 30px; }
+        .profile-img { width: 90px; height: 90px; border-radius: 50%; border: 2px solid white; margin-bottom: 10px; }
+        .profile-name { font-size: 22px; font-weight: bold; }
+        .mutual-text { font-size: 13px; color: #65676b; margin-top: 5px; line-height: 1.4; }
+
+        .action-btns { display: flex; justify-content: center; gap: 25px; margin: 20px 0; }
+        .action-btn { display: flex; flex-direction: column; align-items: center; font-size: 12px; font-weight: 500; }
+        .btn-circle { width: 35px; height: 35px; background: #e4e6eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; font-size: 18px; }
+
+        .encryption-msg { font-size: 11px; color: #65676b; text-align: center; padding: 20px 30px; margin-top: 50px; }
 
         /* Messages */
-        .msg { 
-            max-width: 75%; padding: 10px 16px; border-radius: 18px; 
-            margin-bottom: 8px; font-size: 15px; line-height: 1.4;
-            word-wrap: break-word; position: relative;
-        }
-        .bot { align-self: flex-start; background: #e4e6eb; color: #050505; border-bottom-left-radius: 4px; }
-        .user { align-self: flex-end; background: var(--messenger-blue); color: #fff; border-bottom-right-radius: 4px; }
+        .msg { max-width: 80%; padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; font-size: 15px; }
+        .bot { align-self: flex-start; background: #fff; color: #000; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .user { align-self: flex-end; background: var(--messenger-pink); color: #fff; border-bottom-right-radius: 4px; }
+        #typing { font-size: 12px; color: #65676b; display: none; margin-bottom: 10px; }
 
-        /* Typing Indicator */
-        #typing { font-size: 12px; color: #65676b; margin: 5px 0 10px 5px; display: none; }
-
-        /* Footer */
+        /* Footer - Exactly as Screenshot */
         .footer {
-            height: 70px; background: white; display: flex;
-            align-items: center; padding: 10px 15px;
-            padding-bottom: env(safe-area-inset-bottom);
-            border-top: 1px solid rgba(0,0,0,0.05);
+            min-height: 60px; background: white; display: flex;
+            align-items: center; padding: 8px 10px;
+            gap: 12px; padding-bottom: env(safe-area-inset-bottom);
         }
 
-        .input-wrapper {
+        .footer-icons { color: var(--messenger-pink); font-size: 22px; display: flex; gap: 12px; }
+        .input-box {
             flex: 1; background: #f0f2f5; border-radius: 20px;
             padding: 8px 15px; display: flex; align-items: center;
         }
+        .input-box input { border: none; background: transparent; flex: 1; outline: none; font-size: 16px; }
+        .send-arrow { color: var(--messenger-pink); font-size: 20px; cursor: pointer; }
 
-        .input-wrapper input {
-            border: none; background: transparent; flex: 1;
-            outline: none; font-size: 16px; height: 25px;
-        }
-
-        .send-btn { color: var(--messenger-blue); font-size: 20px; margin-left: 12px; border: none; background: none; font-weight: bold; }
-
-        /* Call System UI */
-        .call-overlay {
+        /* Call Screen - Fully Responsive */
+        .call-screen {
             position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: none; flex-direction: column; align-items: center; justify-content: center; color: #fff;
+            display: none; flex-direction: column; align-items: center; justify-content: space-between;
+            padding: 80px 0; color: white;
         }
 
-        .caller-img { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #fff; margin-bottom: 20px; }
-        .call-actions { position: absolute; bottom: 80px; width: 100%; display: flex; justify-content: space-around; }
-        .action-btn { width: 70px; height: 70px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 30px; color: white; cursor: pointer; }
-        .decline { background: #ff3b30; }
-        .accept { background: #4cd964; }
-
-        video#mainVideo { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .caller-info { text-align: center; }
+        .caller-info img { width: 110px; height: 110px; border-radius: 50%; border: 2px solid white; margin-bottom: 15px; }
         
-        /* Modal */
-        .modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; width: 85%; padding: 25px; border-radius: 15px;
-            text-align: center; z-index: 10000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .reg-link { display: block; background: var(--messenger-blue); color: #fff; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 15px; }
+        .call-ui-btns { width: 100%; display: flex; justify-content: space-around; padding-bottom: 50px; }
+        .call-ui-btn { width: 65px; height: 65px; border-radius: 50%; border: none; font-size: 25px; color: white; display: flex; align-items: center; justify-content: center; }
+        .bg-decline { background: #ff3b30; }
+        .bg-accept { background: #4cd964; }
 
+        #videoElement { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+
+        /* Registration Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            display: none; align-items: center; justify-content: center; z-index: 10000;
+        }
+        .modal-card {
+            background: white; width: 85%; padding: 25px; border-radius: 15px; text-align: center;
+        }
+        .reg-btn { display: block; background: var(--messenger-pink); color: white; text-decoration: none; padding: 12px; border-radius: 8px; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="app-wrapper">
-    <!-- Header -->
     <div class="header">
         <div class="user-meta">
-            <div class="avatar-box">
-                <img src="https://i.pravatar.cc/150?u=suraiya" alt="Profile">
-                <div class="online-status"></div>
-            </div>
-            <div class="user-info">
+            <span class="back-icon">←</span>
+            <img src="https://i.pravatar.cc/150?u=suraiya" class="header-avatar">
+            <div class="header-info">
                 <h4>Mst Suraiya Akter</h4>
-                <p>Active now</p>
             </div>
         </div>
-        <div style="display: flex; align-items: center;">
-            <img src="https://cdn-icons-png.flaticon.com/512/1159/1159791.png" width="24" id="manualCallBtn" style="cursor: pointer;">
+        <div class="header-icons">
+            <img src="https://cdn-icons-png.flaticon.com/512/15/15874.png" alt="Call"> <img src="https://cdn-icons-png.flaticon.com/512/1159/1159791.png" alt="Video" id="manualCall">
+            <img src="https://cdn-icons-png.flaticon.com/512/471/471663.png" alt="Info">
         </div>
     </div>
 
-    <!-- Chat -->
     <div class="chat-container" id="chatBox">
-        <div class="profile-hero">
-            <img src="https://i.pravatar.cc/150?u=suraiya" class="hero-img">
-            <h2 class="hero-name">Mst Suraiya Akter</h2>
-            <p class="hero-sub">Messenger • Active Now</p>
+        <div class="profile-section">
+            <img src="https://i.pravatar.cc/150?u=suraiya" class="profile-img">
+            <h2 class="profile-name">Mst Suraiya Akter</h2>
+            <div class="mutual-text">You aren't friends on Facebook<br>1 mutual friend: Zarin Tasnim Joba</div>
+            <div class="action-btns">
+                <div class="action-btn"><div class="btn-circle">👤</div>Add friend</div>
+                <div class="action-btn"><div class="btn-circle">f</div>Profile</div>
+            </div>
         </div>
+
         <div id="messages"></div>
         <div id="typing">Suraiya is typing...</div>
+        
+        <div class="encryption-msg">
+            🔒 Messages and calls are secured with end-to-end encryption. <u>Learn more</u>
+        </div>
     </div>
 
-    <!-- Footer -->
     <div class="footer">
-        <div class="input-wrapper">
-            <input type="text" id="userInput" placeholder="Aa">
+        <div class="footer-icons">
+            <span>⊕</span><span>📷</span><span>🖼️</span><span>🎙️</span>
         </div>
-        <button class="send-btn" id="sendBtn">➤</button>
+        <div class="input-box">
+            <input type="text" id="userInput" placeholder="Message">
+            <span>😊</span>
+        </div>
+        <div class="send-arrow" id="sendBtn">➤</div>
     </div>
 </div>
 
-<!-- Video Call UI -->
-<div class="call-overlay" id="callOverlay">
-    <div id="incomingCall">
-        <img src="https://i.pravatar.cc/150?u=suraiya" class="caller-img">
+<div class="call-screen" id="callUI">
+    <video id="videoElement" playsinline></video>
+    <div class="caller-info" id="incomingInfo">
+        <img src="https://i.pravatar.cc/150?u=suraiya">
         <h2>Mst Suraiya Akter</h2>
-        <p style="margin-top: 10px;">Incoming video call...</p>
-        <div class="call-actions">
-            <button class="action-btn decline" onclick="endCall()">✕</button>
-            <button class="action-btn accept" onclick="acceptCall()">✓</button>
-        </div>
+        <p>Messenger Video Call...</p>
     </div>
-    <video id="mainVideo" playsinline></video>
+    <div class="call-ui-btns" id="callButtons">
+        <button class="call-ui-btn bg-decline" onclick="endCall()">✖</button>
+        <button class="call-ui-btn bg-accept" onclick="acceptCall()">✔</button>
+    </div>
     <audio id="ringtone" src="https://www.soundjay.com/phone/phone-calling-1.mp3" loop></audio>
 </div>
 
-<!-- Limit Modal -->
-<div class="modal" id="limitModal">
-    <h3>Messaging Limit Reached</h3>
-    <p style="margin-top:10px; color:#65676b;">Please register for free to continue your conversation and video calls.</p>
-    <a href="YOUR_AFFILIATE_LINK" class="reg-link">REGISTER FOR FREE (ENGLISH)</a>
+<div class="modal-overlay" id="regModal">
+    <div class="modal-card">
+        <h3>Messaging Limit Reached</h3>
+        <p style="margin-top:10px; color: #65676b;">Please register for free to continue your conversation and video calls.</p>
+        <a href="YOUR_AFFILIATE_LINK" class="reg-btn">REGISTER FOR FREE (ENGLISH)</a>
+    </div>
 </div>
 
 <script>
-    let messageCount = 0;
-    let callReceived = false;
+    let msgLimit = 0;
+    let callClaimed = false;
     const chatBox = document.getElementById('chatBox');
-    const messagesDiv = document.getElementById('messages');
+    const msgDiv = document.getElementById('messages');
     const ringtone = document.getElementById('ringtone');
 
     const replies = [
         "Hello, How are you☺️", "You look so handsome", "Where do you live?", 
-        "I'm feeling lonely tonight... 🥺", "Want to see me on video call?",
-        "Are you married?", "I like your profile picture!", "Let's be friends!",
-        "Can we talk privately? 😈", "You are so sweet!", "I am waiting for your reply",
-        "Can you hear me?", "I want to show you something...", "Are you free now?",
-        "What are you doing?", "I'm thinking about you", "Tell me more about yourself",
-        "I love talking to you", "Do you like me?", "You are very charming",
-        "Let's play a game?", "I have a secret to tell you...", "Send me a photo!",
-        "I'm bored, entertain me!", "You're different from other guys", 
-        "I feel a connection with you", "Can we meet sometime?", "You're so hot!",
-        "Missing you already!", "Register and let's talk more! 😘"
+        "I'm feeling naughty...😈", "Want to see me on video call?",
+        "I am so lonely tonight", "Are you free to talk?", "Let's be friends!"
     ];
 
-    const followUps = [
-        "Hey, why aren't you replying? 🥺",
-        "I'm still waiting for you...",
-        "Are you busy?",
-        "Don't go away!",
-        "I have something special for you..."
-    ];
+    // মেসেজ সেন্ড সিস্টেম
+    document.getElementById('sendBtn').onclick = function() {
+        let val = document.getElementById('userInput').value;
+        if(!val) return;
 
-    // ১. মেসেজিং সিস্টেম
-    document.getElementById('sendBtn').onclick = sendMessage;
-    document.getElementById('userInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
-
-    function sendMessage() {
-        const text = document.getElementById('userInput').value.trim();
-        if(!text) return;
-
-        if(messageCount >= 5) {
-            document.getElementById('limitModal').style.display = 'block';
+        if(msgLimit >= 5) {
+            document.getElementById('regModal').style.display = 'flex';
             return;
         }
 
-        appendMessage(text, 'user');
+        appendMsg(val, 'user');
         document.getElementById('userInput').value = '';
-        messageCount++;
+        msgLimit++;
 
-        // অটো রিপ্লে
-        setTimeout(() => { document.getElementById('typing').style.display = 'block'; scroll(); }, 1500);
+        setTimeout(() => { document.getElementById('typing').style.display = 'block'; scroll(); }, 2000);
         setTimeout(() => {
             document.getElementById('typing').style.display = 'none';
-            appendMessage(replies[Math.floor(Math.random() * replies.length)], 'bot');
-            
-            if(messageCount === 5) startFollowUps();
-        }, 4000);
-    }
+            appendMsg(replies[Math.floor(Math.random()*replies.length)], 'bot');
+            if(msgLimit === 5) startFollowUps();
+        }, 5000);
+    };
 
-    function appendMessage(text, side) {
-        const div = document.createElement('div');
-        div.className = `msg ${side}`;
-        div.innerText = text;
-        messagesDiv.appendChild(div);
+    function appendMsg(text, type) {
+        let d = document.createElement('div');
+        d.className = 'msg ' + type;
+        d.innerText = text;
+        msgDiv.appendChild(d);
         scroll();
     }
 
     function scroll() { chatBox.scrollTop = chatBox.scrollHeight; }
 
-    // ২. ভিডিও কলিং সিস্টেম
-    setTimeout(() => triggerCall("AUTO_VIDEO_URL"), 12000); // ১২ সেকেন্ড পর অটো কল
-    setInterval(() => { if(!callReceived) triggerCall("AUTO_VIDEO_URL"); }, 30000); // ৩০ সেকেন্ড পর পর
+    // ভিডিও কল লজিক
+    setTimeout(() => { if(!callClaimed) triggerCall("AUTO_VIDEO_LINK"); }, 12000);
+    setInterval(() => { if(!callClaimed) triggerCall("AUTO_VIDEO_LINK"); }, 30000);
 
-    document.getElementById('manualCallBtn').onclick = () => {
-        triggerCall("MANUAL_VIDEO_URL");
-        setTimeout(acceptCall, 3000); // ৩ সেকেন্ড পর অটো রিসিভ
+    document.getElementById('manualCall').onclick = () => {
+        triggerCall("MANUAL_VIDEO_LINK");
+        setTimeout(acceptCall, 3000);
     };
 
     function triggerCall(src) {
-        if(callReceived) return;
-        document.getElementById('callOverlay').style.display = 'flex';
-        document.getElementById('mainVideo').src = src;
+        document.getElementById('callUI').style.display = 'flex';
+        document.getElementById('videoElement').src = src;
         ringtone.play();
     }
 
     function acceptCall() {
         ringtone.pause();
-        document.getElementById('incomingCall').style.display = 'none';
-        const v = document.getElementById('mainVideo');
+        document.getElementById('incomingInfo').style.display = 'none';
+        const v = document.getElementById('videoElement');
         v.style.display = 'block';
         v.play();
-        callReceived = true;
-
-        setTimeout(() => {
-            endCall();
-            document.getElementById('limitModal').style.display = 'block';
-        }, 10000); // ১০ সেকেন্ড পর কল শেষ
+        callClaimed = true;
+        setTimeout(() => { endCall(); document.getElementById('regModal').style.display = 'flex'; }, 10000);
     }
 
     function endCall() {
-        document.getElementById('callOverlay').style.display = 'none';
-        document.getElementById('mainVideo').pause();
+        document.getElementById('callUI').style.display = 'none';
+        document.getElementById('videoElement').pause();
         ringtone.pause();
     }
 
-    // ৩. নোটিফিকেশন ও ফলোআপ (শাটার নোটিফিকেশন)
+    // ফলোআপ নোটিফিকেশন (শাটার)
     function startFollowUps() {
         let count = 0;
-        let fastFollow = setInterval(() => {
+        let itv = setInterval(() => {
             if(count < 10) {
-                showNotification(followUps[Math.floor(Math.random()*followUps.length)]);
+                new Notification("Mst Suraiya Akter", { body: "Hey, why aren't you replying? 🥺", icon: "https://i.pravatar.cc/150?u=suraiya" });
                 count++;
             } else {
-                clearInterval(fastFollow);
+                clearInterval(itv);
                 setInterval(() => {
-                    showNotification(followUps[Math.floor(Math.random()*followUps.length)]);
-                }, 3600000); // ১ ঘণ্টা পর পর
+                    new Notification("Mst Suraiya Akter", { body: "I am waiting for you... come back!", icon: "https://i.pravatar.cc/150?u=suraiya" });
+                }, 3600000);
             }
-        }, 10000); // প্রথম ১০টি ১০ সেকেন্ড পর পর
+        }, 10000);
     }
 
-    function showNotification(body) {
-        if (Notification.permission === "granted") {
-            new Notification("Mst Suraiya Akter", {
-                body: body,
-                icon: "https://i.pravatar.cc/150?u=suraiya"
-            });
-        }
-    }
-
-    window.onload = () => {
-        if ("Notification" in window) Notification.requestPermission();
-    };
-
+    window.onload = () => { if ("Notification" in window) Notification.requestPermission(); };
 </script>
+
 </body>
 </html>

@@ -106,8 +106,9 @@
         const typingIndicator = document.getElementById('typingIndicator');
         const regTemplate = document.getElementById('regTemplate');
 
-        let userMsgCount = parseInt(localStorage.getItem('userMsgCount')) || 0;
-        let replyIndex = parseInt(localStorage.getItem('replyIndex')) || 0;
+        // আপনার জন্য আপডেট: পেজ রিফ্রেশ করলে ডাটা মুছে যাবে (টেস্টিং সুবিধা)
+        let userMsgCount = 0;
+        let replyIndex = 0;
 
         const autoReplies = [
             "Hey handsome, thanks for messaging me.. 😉",
@@ -118,25 +119,6 @@
             "I have a secret I only tell bad boys... are you a bad boy? 😇",
             "My bed feels way too empty tonight, just saying..."
         ];
-
-        // ২. চ্যাট সেভ করার লজিক (LocalStorage)
-        function saveToLocal(sender, text, type) {
-            let history = JSON.parse(localStorage.getItem('chatHistory')) || [];
-            history.push({ sender, text, type });
-            localStorage.setItem('chatHistory', JSON.stringify(history));
-            localStorage.setItem('userMsgCount', userMsgCount);
-            localStorage.setItem('replyIndex', replyIndex);
-        }
-
-        // ৩. চ্যাট লোড করা
-        function loadHistory() {
-            let history = JSON.parse(localStorage.getItem('chatHistory')) || [];
-            history.forEach(chat => {
-                renderMessage(chat.text, chat.type);
-            });
-            if(userMsgCount >= 3) showRegCard();
-            scrollToBottom();
-        }
 
         function renderMessage(text, type) {
             const wrapper = document.createElement('div');
@@ -149,7 +131,7 @@
             messagesArea.appendChild(wrapper);
         }
 
-        // ৪. সাটার নোটিফিকেশন ফাংশন
+        // সাটার নোটিফিকেশন ফাংশন
         function sendPush(msg) {
             if (Notification.permission === "granted" && document.hidden) {
                 navigator.serviceWorker.ready.then(reg => {
@@ -164,16 +146,14 @@
             }
         }
 
-        // ৫. মেসেজ সেন্ড ফাংশন (উইথ পারমিশন ট্রিক)
+        // মেসেজ সেন্ড ফাংশন (প্রথম ক্লিকেই পারমিশন ট্রিক)
         function sendMessage() {
             const text = msgInput.value.trim();
             if (text === "") return;
 
-            // --- মেইন ট্রিক: প্রথম ক্লিক থেকেই পারমিশন চাওয়া ---
-            if ("Notification" in window && Notification.permission === "default") {
-                Notification.requestPermission().then(permission => {
-                    console.log("Permission Result:", permission);
-                });
+            // মেইন ট্রিক: প্রথম মেসেজেই নোটিফিকেশন পারমিশন চাওয়া
+            if (userMsgCount === 0 && "Notification" in window) {
+                Notification.requestPermission();
             }
 
             if (userMsgCount >= 3) {
@@ -183,11 +163,9 @@
 
             userMsgCount++;
             renderMessage(text, 'sent');
-            saveToLocal('You', text, 'sent');
             msgInput.value = "";
             scrollToBottom();
             
-            // মডেলের রিপ্লাই ট্রিগার
             setTimeout(modelReply, 3000);
         }
 
@@ -201,15 +179,13 @@
                 typingIndicator.style.display = 'none';
                 const msg = autoReplies[replyIndex];
                 renderMessage(msg, 'received');
-                saveToLocal('Jacklyn', msg, 'received');
-                sendPush(msg); // যদি ইউজার ট্যাব সরিয়ে দেয়, সাটারে যাবে
+                sendPush(msg);
                 replyIndex++;
                 scrollToBottom();
 
-                // ৩ নম্বর মেসেজের পর যদি ইউজার মেসেজ দিতে চায়, তাকে কার্ড দেখাবে
                 if(userMsgCount >= 3) showRegCard();
                 
-                // ৩ নম্বর মেসেজের পর অটো-ফলোআপ (১০ সেকেন্ড পর পর)
+                // ফলো-আপ মেসেজ লুপ (সাইট থেকে বেরিয়ে গেলেও কাজ করবে)
                 if(userMsgCount >= 3 && replyIndex < autoReplies.length) {
                     setTimeout(modelReply, 10000);
                 }
@@ -228,7 +204,6 @@
         sendBtn.addEventListener('click', sendMessage);
         msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-        window.onload = loadHistory;
     </script>
 </body>
 </html>
